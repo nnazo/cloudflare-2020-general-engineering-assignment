@@ -1,5 +1,7 @@
 addEventListener('fetch', event => {
   const url = new URL(event.request.url);
+  // Only respond to exactly /links with the JSON links.
+  // Otherwise respond with the webpage (including /links/)
   if (url.pathname === '/links') {
     event.respondWith(handleLinksRequest(event.request));
   } else {
@@ -7,6 +9,7 @@ addEventListener('fetch', event => {
   }
 })
 
+// The links to be used for the /links endpoint and LinksTransformer
 const links = [
   { name: "Cloudflare", url: "https://cloudflare.com" },
   { name: "GitHub", url: "https://github.com" },
@@ -17,7 +20,7 @@ const links = [
 ];
 
 /**
- * Respond with static webpage
+ * Respond with the modified static webpage
  * @param {Request} request
  */
 async function handleRequest(request) {
@@ -28,6 +31,7 @@ async function handleRequest(request) {
       });
     });
 
+  // Transform the specified elements using the given transformers
   const modified = new HTMLRewriter()
     .on('div#links', new LinksTransformer(links))
     .on('div#profile', new ProfileTransformer())
@@ -59,6 +63,10 @@ class LinksTransformer {
   }
 
   async element(element) {
+    // Clear the inner content in case anything already exists there
+    element.setInnerContent('');
+
+    // Add the links inside of the element's content.
     this.links.forEach(link => {
       element.append(`<a href="${link.url}">${link.name}</a>`, {
         html: true
@@ -69,18 +77,21 @@ class LinksTransformer {
 
 class ProfileTransformer {
   async element(element) {
+    // Removes 'display: none' styling
     element.removeAttribute('style');
   }
 }
 
 class AvatarTransformer {
   async element(element) {
+    // Adds the image source for the user avatar
     element.setAttribute('src', 'https://avatars0.githubusercontent.com/u/6753860?s=460&v=4');
   }
 }
 
 class UsernameTransformer {
   async element(element) {
+    // Sets the username value
     element.setInnerContent('nnazo');
   }
 }
@@ -103,7 +114,9 @@ class SocialTransformer {
   }
 
   async element(element) {
+    // Clears the 'display: none' style
     element.removeAttribute('style');
+    // Adds the GitHub socials link
     element.setInnerContent(`
       <a href="https://github.com/nnazo" alt="GitHub Profile">
         ${this.githubUrl}
@@ -116,12 +129,14 @@ class SocialTransformer {
 
 class TitleTransformer {
   async element(element) {
+    // Modifies the title to my name.
     element.setInnerContent('Jacob Curtis');
   }
 }
 
 class BackgroundTransformer {
   async element(element) {
+    // Changes the background color.
     element.setAttribute('class', 'bg-gray-700');
   }
 }
