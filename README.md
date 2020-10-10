@@ -1,3 +1,3 @@
 # General Engineering Assignment 2020 - Links
 
-The deployed assignment lives [here](https://cloudflare-links-assignment.jacobcurtis2266.workers.dev).
+The deployed assignment lives [here](https://https://cloudflare-2020-general-engineering-assignment.jacobcurtis2266.workers.dev).
