@@ -30,6 +30,9 @@ async function handleRequest(request) {
 
   const modified = new HTMLRewriter()
     .on("div#links", new LinksTransformer(links))
+    .on("div#profile", new ProfileTransformer())
+    .on("img#avatar", new AvatarTransformer())
+    .on("h1#name", new UsernameTransformer())
     .transform(resp);
   
   return new Response(await modified.text(), {
@@ -53,10 +56,28 @@ class LinksTransformer {
   }
 
   async element(element) {
-    let inner = '';
     this.links.forEach(link => {
-      inner = inner.concat(`<a href="${link.url}">${link.name}</a>`);
+      element.append(`<a href="${link.url}">${link.name}</a>`, {
+        html: true
+      });
     });
-    element.setInnerContent(inner, { html: true });
+  }
+}
+
+class ProfileTransformer {
+  async element(element) {
+    element.removeAttribute("style");
+  }
+}
+
+class AvatarTransformer {
+  async element(element) {
+    element.setAttribute('src', 'https://avatars0.githubusercontent.com/u/6753860?s=460&v=4');
+  }
+}
+
+class UsernameTransformer {
+  async element(element) {
+    element.setInnerContent('nnazo');
   }
 }
