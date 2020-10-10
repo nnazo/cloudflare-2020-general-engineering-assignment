@@ -8,12 +8,12 @@ addEventListener('fetch', event => {
 })
 
 const links = [
-  { "name": "Cloudflare", "url": "https://cloudflare.com" },
-  { "name": "GitHub", "url": "https://github.com" },
-  { "name": "Rust", "url": "https://rust-lang.org" },
-  { "name": "Docker", "url": "https://docker.com" },
-  { "name": "DuckDuckGo", "url": "https://duckduckgo.com" },
-  { "name": "DigitalOcean", "url": "https://digitalocean.com" }
+  { name: "Cloudflare", url: "https://cloudflare.com" },
+  { name: "GitHub", url: "https://github.com" },
+  { name: "Rust", url: "https://rust-lang.org" },
+  { name: "Docker", url: "https://docker.com" },
+  { name: "DuckDuckGo", url: "https://duckduckgo.com" },
+  { name: "DigitalOcean", url: "https://digitalocean.com" }
 ];
 
 /**
@@ -22,14 +22,17 @@ const links = [
  */
 async function handleRequest(request) {
   const resp = await fetch('https://static-links-page.signalnerve.workers.dev')
-    .then(resp => resp.text())
     .catch(error => {
       return new Response('Failed to fetch static webpage', {
         headers: { 'Content-Type': 'text/plain' }
       });
     });
+
+  const modified = new HTMLRewriter()
+    .on("div#links", new LinksTransformer(links))
+    .transform(resp);
   
-  return new Response(resp, {
+  return new Response(await modified.text(), {
     headers: { 'Content-Type': 'text/html' }
   });
 }
@@ -42,4 +45,18 @@ async function handleLinksRequest(request) {
   return new Response(JSON.stringify(links), {
     headers: { 'Content-Type': 'application/json' }
   });
+}
+
+class LinksTransformer {
+  constructor(links) {
+    this.links = links;
+  }
+
+  async element(element) {
+    let inner = '';
+    this.links.forEach(link => {
+      inner = inner.concat(`<a href="${link.url}">${link.name}</a>`);
+    });
+    element.setInnerContent(inner, { html: true });
+  }
 }
